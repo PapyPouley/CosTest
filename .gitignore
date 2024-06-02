@@ -1,0 +1,7 @@
+APP/DS_Store
+APP/node_modules/
+APP/package-lock.json
+APP/yarn.lock
+APP/npm-debug.log
+APP/.idea/
+APP/dist/
