@@ -1,0 +1,240 @@
+
+
+(2) LOAD SOURCE FILE 
+<br>
+<input type="file" id="file-selector1">
+
+<br>
+<br>
+(2) LOAD IMPULSE/RESPONSE
+<br>
+<input type="file" id="file-selector2">
+
+<br>
+<br>
+(3) SELECT A SOURCE
+<fieldset onchange="createCtx('file')">
+  <div>
+    <input type="radio" id="file" name="source" value="file" checked />
+    <label for="file">file</label>
+  </div>
+
+  <div>
+    <input type="radio" id="sine" name="source" value="sine" />
+    <label for="sine">sine</label>
+  </div>
+
+  <div>
+    <input type="radio" id="noise" name="source" value="noise" />
+    <label for="noise">noise</label>
+  </div>
+</fieldset>
+
+
+
+<br>
+<br>
+<canvas id="oscilloscope" width="900px" height="300px"></canvas>
+
+
+
+
+<script>
+
+document.body.style.setProperty("font-family", "arial");
+
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+var audioOut; 
+
+
+async function createReverb() {
+ 		let convolver = audioCtx.createConvolver();
+
+		IR_URL = document.querySelector("audio[id='IR']").src
+
+ 		// load impulse response from file
+ 		let response = await fetch(IR_URL);
+  		let arraybuffer = await response.arrayBuffer();
+  		convolver.buffer = await audioCtx.decodeAudioData(arraybuffer);
+
+  		return convolver;
+	}
+
+
+
+async function createCtx(){
+
+	source = document.querySelector('input[name="source"]:checked').value;
+
+	audioCtx.close();
+	audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+	audioOut = audioCtx.createGain();
+	audioOut.connect(audioCtx.destination);
+
+	// WHITE NOISE ===========================
+	var bufferSize = 4096;
+	var whiteNoise = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+	whiteNoise.onaudioprocess = function(e) {
+		var output = e.outputBuffer.getChannelData(0);
+		for (var i = 0; i < bufferSize; i++) {
+			output[i] = Math.random() * 2 - 1;
+		}
+	}
+
+	// SINE =================================
+	const oscillator = audioCtx.createOscillator();
+	oscillator.type = "sine";
+	oscillator.frequency.setValueAtTime(400, audioCtx.currentTime); // value in hertz
+
+	// FILE =====================================
+	const audioElement = document.querySelector("audio[id='base_audio']");
+	const track = audioCtx.createMediaElementSource(audioElement);
+
+	// IR ===============================
+	var reverb = await createReverb(); //await
+	reverb.connect(audioOut);
+
+
+	switch(source){
+		case "sine":
+			oscillator.connect(reverb);
+			oscillator.start();
+			break;
+
+		case "file":
+			track.connect(reverb);
+			audioElement.play();
+			break;
+
+		case "noise":
+			whiteNoise.connect(reverb);	
+			break;
+	}
+
+	spawn_analyser();
+
+}
+
+  const fileSelector1 = document.getElementById('file-selector1');
+  fileSelector1.addEventListener('change', (event) => {
+    const fileList = event.target.files;
+    console.log(fileList);
+	getMetadataForFileList(fileList);
+	load_file_into_audio(fileList, "base_audio");
+	//play();
+  });
+
+  const fileSelector2 = document.getElementById('file-selector2');
+  fileSelector2.addEventListener('change', (event) => {
+    const fileList = event.target.files;
+    console.log(fileList);
+	getMetadataForFileList(fileList);
+	load_file_into_audio(fileList, "IR");
+	
+	source = document.querySelector('input[name="source"]:checked').value;
+	createCtx(source);
+  });
+
+
+
+function getMetadataForFileList(fileList) {
+  for (const file of fileList) {
+    // Not supported in Safari for iOS.
+    const name = file.name ? file.name : 'NOT SUPPORTED';
+    // Not supported in Firefox for Android or Opera for Android.
+    const type = file.type ? file.type : 'NOT SUPPORTED';
+    // Unknown cross-browser support.
+    const size = file.size ? file.size : 'NOT SUPPORTED';
+    console.log({file, name, type, size});
+  }
+}
+
+
+
+function load_file_into_audio(fl, audio_id){
+
+
+	const myFileURL = window.URL.createObjectURL(fl[0]);
+	console.log(myFileURL);
+
+	//const audioElement = document.querySelector("audio");
+
+	try { document.querySelector("audio[id='"+audio_id+"']").remove(); } catch { console.log("nothing to remove");}
+	var audioElement = document.createElement("audio");
+	audioElement.setAttribute("src", myFileURL);
+	audioElement.setAttribute("id", audio_id);
+	document.body.appendChild(audioElement);
+	
+}
+
+
+
+
+
+
+
+
+// ======================================================== ANALYSER
+
+function spawn_analyser() {
+// …
+
+const analyser = audioCtx.createAnalyser();
+analyser.fftSize = 2048;
+
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+analyser.getByteTimeDomainData(dataArray);
+
+// Connect the source to be analysed
+//const audioElement = document.querySelector("audio[id='base_audio']");
+//track = audioCtx.createMediaElementSource(audioElement);
+audioOut.connect(analyser);
+
+// Get a canvas defined with ID "oscilloscope"
+const canvas = document.getElementById("oscilloscope");
+const canvasCtx = canvas.getContext("2d");
+
+// draw an oscilloscope of the current audio source
+
+function draw() {
+  requestAnimationFrame(draw);
+
+  analyser.getByteFrequencyData(dataArray);
+
+  canvasCtx.fillStyle = "rgb(200 200 200)";
+  canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+  canvasCtx.lineWidth = 1;
+  canvasCtx.strokeStyle = "rgb(0 0 0)";
+
+  canvasCtx.beginPath();
+
+  const sliceWidth = (canvas.width * 1.0) / bufferLength;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const v = dataArray[i] /256.0 ; // 128.0;
+    const y = (canvas.height - v * canvas.height);
+
+    if (i === 0) {
+      canvasCtx.moveTo(x, y);
+    } else {
+      canvasCtx.lineTo(x, y);
+    }
+
+    x += sliceWidth;
+  }
+
+  //canvasCtx.lineTo(canvas.width, canvas.height / 2);
+  canvasCtx.stroke();
+}
+
+draw();
+
+
+}
+
+
+
+</script>

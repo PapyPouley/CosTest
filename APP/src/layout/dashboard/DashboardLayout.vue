@@ -6,6 +6,7 @@
         <sidebar-link to="/speaker" :name="$t('sidebar.speaker.name')" :icon="$t('sidebar.speaker.icon')" />
         <sidebar-link to="/microphone" :name="$t('sidebar.microphone.name')" :icon="$t('sidebar.microphone.icon')" />
         <sidebar-link to="/room" :name="$t('sidebar.room.name')" :icon="$t('sidebar.room.icon')" />
+        <sidebar-link to="/wave" :name="$t('sidebar.wave.name')" :icon="$t('sidebar.wave.icon')" />
       </template>
     </side-bar>
     <div class="main-panel">

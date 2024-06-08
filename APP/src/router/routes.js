@@ -11,6 +11,8 @@ const Room = () =>
   import(/* webpackChunkName: "comon" */ "@/pages/Room.vue");
 const Microphone = () =>
   import(/* webpackChunkName: "comon" */ "@/pages/Microphone.vue");
+const Wave = () =>
+  import(/* webpackChunkName: "comon" */ "@/pages/Wave.vue");
 
 const routes = [
   {
@@ -37,6 +39,11 @@ const routes = [
         path: "microphone",
         name: "microphone",
         component: Microphone,
+      },
+      {
+        path: "wave",
+        name: "wave",
+        component: Wave,
       }
     ],
   },
