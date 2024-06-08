@@ -25,7 +25,8 @@
         <div class="collapse navbar-collapse show" v-show="showMenu">
           <ul class="navbar-nav" :class="$rtl.isRTL ? 'mr-auto' : 'ml-auto'">
             <!--Port selection-->
-            <div class="input-group mb-3 container calc">
+            <div class="input-group mb-3 container calc" style="align-items: center;">
+              <p>{{ SelectedPort }}</p>
               <base-dropdown tag="li" :menu-on-right="!$rtl.isRTL" title-tag="a" class="nav-item"
                 menu-classes="dropdown-navbar">
                 <a slot="title" href="#" class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="true">
@@ -34,8 +35,11 @@
                   </div>
                   <b class="caret d-none d-lg-block d-xl-block"></b>
                 </a>
-                <li v-for="port in ports" :key="port.value" :class="['nav-link', { disabled: !port.disabled }]">
-                  <a href="#" class="nav-item dropdown-item" :class="{ disabled: !port.disabled }">{{ port.text }}</a>
+                <li v-for="port in ports" :key="port.value" class="nav-link">
+                  <a href="#" :class="['nav-item dropdown-item', { disabled: port.disabled }]" @click="selectPort(port)"
+                    :aria-disabled="port.disabled">
+                    {{ port.text }}
+                  </a>
                 </li>
               </base-dropdown>
             </div>
@@ -90,13 +94,21 @@ export default {
       searchModalVisible: false,
       searchQuery: "",
       ports: [
-        { value: null, text: 'Please select a port', disabled: 'false' },
-        { value: 'port1', text: 'Port 1', disabled: 'true' },
-        { value: 'port2', text: 'Port 2', disabled: 'true' }
+        { value: null, text: 'Please select a port', disabled: true },
+        { value: 'port1', text: 'Port 1', disabled: true },
+        { value: 'port2', text: 'Port 2', disabled: true },
+        { value: 'Simulate', text: 'Simulate', disabled: false },
       ],
+      SelectedPort: "Simulate",
     };
   },
   methods: {
+    selectPort(port) {
+      if (!port.disabled) {
+        this.SelectedPort = port.text
+        this.$globals.Port = port.text;
+      }
+    },
     capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     },

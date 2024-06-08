@@ -1,5 +1,183 @@
 <template>
-   <div>
-      <h1>Test Microphone</h1>
+   <div class="microphone">
+      <div class="header-row">
+         <h1>Microphone Test Results</h1>
+         <div class="image" @click="runTest">
+            <div class="di">
+               <img src="@/assets/icons/Run.png" class="img" />
+            </div>
+            <p>Run</p>
+         </div>
+      </div>
+      <div v-if="testResults">
+         <div class="row">
+            <div class="col-md-6 col-12">
+               <card type="chart">
+                  <template slot="header">
+                     <h5 class="card-category">Impulse Response</h5>
+                     <h2 class="card-title">Impulse Response</h2>
+                  </template>
+                  <div class="chart-area">
+                     <line-chart style="height: 100%" :chart-data="testResults.impulseResponse"
+                        :extra-options="chartOptions" />
+                  </div>
+               </card>
+            </div>
+            <div class="col-md-6 col-12">
+               <card type="chart">
+                  <template slot="header">
+                     <h5 class="card-category">Frequency Response</h5>
+                     <h2 class="card-title">Frequency Response</h2>
+                  </template>
+                  <div class="chart-area">
+                     <line-chart style="height: 100%" :chart-data="testResults.frequencyResponse"
+                        :extra-options="chartOptions" />
+                  </div>
+               </card>
+            </div>
+            <div class="col-md-6 col-12">
+               <card type="chart">
+                  <template slot="header">
+                     <h5 class="card-category">Impedance</h5>
+                     <h2 class="card-title">Impedance</h2>
+                  </template>
+                  <div class="chart-area">
+                     <line-chart style="height: 100%" :chart-data="testResults.impedance"
+                        :extra-options="chartOptions" />
+                  </div>
+               </card>
+            </div>
+            <div class="col-md-6 col-12">
+               <card type="chart">
+                  <template slot="header">
+                     <h5 class="card-category">Directivity</h5>
+                     <h2 class="card-title">Directivity</h2>
+                  </template>
+                  <div class="chart-area">
+                     <line-chart style="height: 100%" :chart-data="testResults.directivity"
+                        :extra-options="chartOptions" />
+                  </div>
+               </card>
+            </div>
+         </div>
+      </div>
    </div>
 </template>
+
+<script>
+import NotificationTemplate from "./Notifications/NotificationTemplate";
+import LineChart from "@/components/Charts/LineChart";
+import testAudio from "../TestScript/TestAudio";
+
+export default {
+   components: {
+      LineChart,
+   },
+   data() {
+      return {
+         type: ["", "info", "success", "warning", "danger"],
+         testResults: null,
+         chartOptions: {
+            responsive: true,
+            maintainAspectRatio: false,
+         },
+      };
+   },
+   methods: {
+      notifyVue(verticalAlign, horizontalAlign, message) {
+         this.$notify({
+            component: NotificationTemplate,
+            icon: "tim-icons icon-bell-55",
+            horizontalAlign: horizontalAlign,
+            verticalAlign: verticalAlign,
+            type: this.type[4],
+            message: message,
+            timeout: 5000,
+         });
+      },
+      runTest() {
+         let resConnection = connectCOMPort(this.$globals.Port);
+         if (resConnection.error) {
+            this.notifyVue('top', 'center', resConnection.message);
+         } else {
+            let results = testAudio("microphone");
+            //  Print the results
+            this.testResults = {
+               impulseResponse: {
+                  labels: results.microphone.impulseResponse.labels,
+                  datasets: [
+                     {
+                        label: "Impulse Response",
+                        data: results.microphone.impulseResponse.data,
+                        borderColor: "#42b983",
+                        fill: false,
+                     },
+                  ],
+               },
+               frequencyResponse: {
+                  labels: results.microphone.frequencyResponse.labels,
+                  datasets: [
+                     {
+                        label: "Frequency Response",
+                        data: results.microphone.frequencyResponse.data,
+                        borderColor: "#f87979",
+                        fill: false,
+                     },
+                  ],
+               },
+               impedance: {
+                  labels: results.microphone.impedance.labels,
+                  datasets: [
+                     {
+                        label: "Impedance",
+                        data: results.microphone.impedance.data,
+                        borderColor: "#3498db",
+                        fill: false,
+                     },
+                  ],
+               },
+               directivity: {
+                  labels: results.microphone.directivity.labels,
+                  datasets: [
+                     {
+                        label: "Directivity",
+                        data: results.microphone.directivity.data,
+                        borderColor: "#9b59b6",
+                        fill: false,
+                     },
+                  ],
+               },
+            };
+         }
+      },
+   },
+};
+function connectCOMPort(Port) {
+   if (Port.toLowerCase() === 'simulate') {
+      return { message: `Microphone on Port: ${Port} connected!`, error: false };
+   }
+   else
+      return { message: `Microphone on Port: ${Port} can not be connected!`, error: true };
+}
+</script>
+
+<style scoped>
+.microphone {
+   text-align: center;
+}
+
+.header-row {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 20px;
+}
+
+.image {
+   cursor: pointer;
+}
+
+button {
+   margin: 20px 0;
+}
+</style>

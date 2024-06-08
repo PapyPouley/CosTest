@@ -18,8 +18,8 @@
   </div>
 </template>
 <style lang="scss"></style>
+
 <script>
-import Amplifier from './../../assets/icons/Amplifier.png';
 import TopNavbar from "./TopNavbar.vue";
 import ContentFooter from "./ContentFooter.vue";
 import DashboardContent from "./Content.vue";
@@ -35,6 +35,7 @@ export default {
     toggleSidebar() {
       if (this.$sidebar.showSidebar) {
         this.$sidebar.displaySidebar(false);
+        console.log(this.$sidebar)
       }
     },
   },

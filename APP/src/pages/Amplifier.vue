@@ -1,12 +1,13 @@
 <template>
    <div class="amplifier">
       <div class="header-row">
-         <h1>Amplifier Test Results</h1>
+         <h1 class="header-text">Amplifier Test Results</h1>
          <div class="image" @click="runTest">
-            <div class="di">
-               <img src="@/assets/icons/Run.png" class="img" />
-            </div>
+            <img src="@/assets/icons/Run.png" class="img" />
             <p>Run</p>
+         </div>
+         <div class="data">
+            <dataBase :data="results" type="amplifier" @loaded="loadHandler" />
          </div>
       </div>
       <div v-if="testResults">
@@ -65,92 +66,134 @@
 </template>
 
 <script>
+import NotificationTemplate from "./Notifications/NotificationTemplate";
 import LineChart from "@/components/Charts/LineChart";
+import testAudio from "../TestScript/TestAudio";
+import DataBase from "../components/dataBase/dataBase.vue";
 
 export default {
    components: {
       LineChart,
+      DataBase
    },
    data() {
       return {
+         type: ["", "info", "success", "warning", "danger"],
          testResults: null,
          chartOptions: {
             responsive: true,
             maintainAspectRatio: false,
          },
+         results: null
       };
    },
    methods: {
-      runTest() {
-         // Simulate test results
-         this.testResults = {
-            impulseResponse: {
-               labels: ["0ms", "1ms", "2ms", "3ms", "4ms", "5ms"],
-               datasets: [
-                  {
-                     label: "Impulse Response",
-                     data: [0, 10, 5, 2, 20, 30, 45],
-                     borderColor: "#42b983",
-                     fill: false,
-                  },
-               ],
-            },
-            frequencyResponse: {
-               labels: ["20Hz", "50Hz", "100Hz", "200Hz", "500Hz", "1kHz", "2kHz", "5kHz", "10kHz", "20kHz"],
-               datasets: [
-                  {
-                     label: "Frequency Response",
-                     data: [20, 30, 45, 60, 70, 85, 95, 100, 90, 80],
-                     borderColor: "#f87979",
-                     fill: false,
-                  },
-               ],
-            },
-            impedance: {
-               labels: ["20Hz", "50Hz", "100Hz", "200Hz", "500Hz", "1kHz", "2kHz", "5kHz", "10kHz", "20kHz"],
-               datasets: [
-                  {
-                     label: "Impedance",
-                     data: [8, 8.2, 8.5, 8.8, 9, 8.7, 8.5, 8.3, 8.1, 8],
-                     borderColor: "#3498db",
-                     fill: false,
-                  },
-               ],
-            },
-            directivity: {
-               labels: ["0°", "30°", "60°", "90°", "120°", "150°", "180°"],
-               datasets: [
-                  {
-                     label: "Directivity",
-                     data: [100, 90, 80, 70, 60, 50, 40],
-                     borderColor: "#9b59b6",
-                     fill: false,
-                  },
-               ],
-            },
-         };
+      notifyVue(verticalAlign, horizontalAlign, message) {
+         this.$notify({
+            component: NotificationTemplate,
+            icon: "tim-icons icon-bell-55",
+            horizontalAlign: horizontalAlign,
+            verticalAlign: verticalAlign,
+            type: this.type[4],
+            message: message,
+            timeout: 5000,
+         });
       },
+      runTest() {
+         let resConnection = connectCOMPort(this.$globals.Port);
+         if (resConnection.error) {
+            this.notifyVue('top', 'center', resConnection.message);
+         } else {
+            let results = testAudio("amplifier");
+            this.results = results;
+            //  Print the results
+            this.printGraph(this.results.amplifier)
+         }
+      },
+      printGraph(results) {
+         if (results) {
+            this.testResults = {
+               impulseResponse: {
+                  labels: results.impulseResponse.labels,
+                  datasets: [
+                     {
+                        label: "Impulse Response",
+                        data: results.impulseResponse.data,
+                        borderColor: "#42b983",
+                        fill: false,
+                     },
+                  ],
+               },
+               frequencyResponse: {
+                  labels: results.frequencyResponse.labels,
+                  datasets: [
+                     {
+                        label: "Frequency Response",
+                        data: results.frequencyResponse.data,
+                        borderColor: "#f87979",
+                        fill: false,
+                     },
+                  ],
+               },
+               impedance: {
+                  labels: results.impedance.labels,
+                  datasets: [
+                     {
+                        label: "Impedance",
+                        data: results.impedance.data,
+                        borderColor: "#3498db",
+                        fill: false,
+                     },
+                  ],
+               },
+               directivity: {
+                  labels: results.directivity.labels,
+                  datasets: [
+                     {
+                        label: "Directivity",
+                        data: results.directivity.data,
+                        borderColor: "#9b59b6",
+                        fill: false,
+                     },
+                  ],
+               },
+            };
+         }
+      },
+      loadHandler(data) {
+         console.log("Amp")
+         this.results = data.data;
+         this.printGraph(this.results)
+      }
    },
 };
+function connectCOMPort(Port) {
+   if (Port.toLowerCase() === 'simulate') {
+      return { message: `Amplifier on Port: ${Port} connected!`, error: false };
+   }
+   else
+      return { message: `Amplifier on Port: ${Port} can not be connected!`, error: true };
+}
 </script>
 
 <style scoped>
-.amplifier {
-  text-align: center;
-}
 
 .header-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
+  width: 100%;
+}
+
+.header-text {
+  margin: 0;
 }
 
 .image {
   cursor: pointer;
+  margin: 0 auto;
+  text-align: center;
 }
 
-button {
-  margin: 20px 0;
-}
 </style>

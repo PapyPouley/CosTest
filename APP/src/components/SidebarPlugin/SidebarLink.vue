@@ -32,7 +32,7 @@ export default {
   },
   props: {
     name: String,
-    icon: String, // This will now be the URL of the icon
+    icon: String, 
     tag: {
       type: String,
       default: "router-link",
@@ -42,6 +42,7 @@ export default {
     hideSidebar() {
       if (this.autoClose) {
         this.$sidebar.displaySidebar(false);
+        console.log(this.$sidebar)
       }
     },
     isActive() {
