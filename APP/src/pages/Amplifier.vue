@@ -99,12 +99,12 @@ export default {
             timeout: 5000,
          });
       },
-      runTest() {
+      async runTest() {
          let resConnection = connectCOMPort(this.$globals.Port);
          if (resConnection.error) {
             this.notifyVue('top', 'center', resConnection.message);
          } else {
-            let results = testAudio("amplifier");
+            let results = await testAudio("amplifier");
             this.results = results;
             //  Print the results
             this.printGraph(this.results.amplifier)

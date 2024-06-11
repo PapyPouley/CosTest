@@ -17,8 +17,9 @@
 </template>
 
 <script>
-import LineChart from "@/components/Charts/LineChart";
-import testAudio from '../TestScript/TestAudio';
+import LineChart from "@/components/Charts/LineChart.js";
+import testAudio from '../TestScript/TestAudio.js';
+import { logChartOptions } from "../components/Charts/config.js";
 
 export default {
    components: {
@@ -27,34 +28,56 @@ export default {
    data() {
       return {
          file: null,
-         audioContext: null,
-         audioBuffer: null,
          testResults: null,
+         option: logChartOptions,
          chartOptions: {
             responsive: true,
             maintainAspectRatio: false,
-         },
+            plugins: {
+               title: {
+                  display: true,
+                  text: 'fevfe',
+               },
+            },
+            scales: {
+               xAxes: [{
+                  type: 'logarithmic',
+                  display: true,
+                  title: [{
+                     display: true,
+                     text: 'Frequency (Hz)'
+                  }]
+               }],
+               yAxes: [{
+                  type: 'linear',
+                  display: true,
+                  title: [{
+                     display: true,
+                     text: 'Amplitude'
+                  }]
+               }]
+            },
+         }
       }
    },
    methods: {
       async changeHandler(event) {
          const file = event.target.files[0];
-         console.log(file)
          if (file) {
             let results = await testAudio("wave", file);
-            console.log("res",results.wave)
-            this.printGraph(results.wave)
+            console.log(results)
+            this.printGraph(results.wave);
          }
       },
       printGraph(results) {
          if (results) {
             this.testResults = {
                impulseResponse: {
-                  labels: results.impulseResponse.labels,
+                  //labels: results.impulseResponse.labels,
                   datasets: [
                      {
                         label: "Impulse Response",
-                        data: results.impulseResponse.data,
+                        data: results.impulseResponse,
                         borderColor: "#42b983",
                         fill: false,
                      },

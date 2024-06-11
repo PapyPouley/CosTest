@@ -3,7 +3,7 @@
       <base-dropdown tag="li" title-tag="a" class="nav-item load" menu-classes="dropdown-navbar">
          <a slot="title" href="#" class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="true">
             <div class="photo">
-               <img src="@/assets/icons/download.png"/>
+               <img src="@/assets/icons/download.png" />
             </div>
             <b class="caret d-none d-lg-block d-xl-block"></b>
          </a>
@@ -24,13 +24,13 @@ export default {
       upadate: Number,
    },
    watch: {
-      upadate(){
+      upadate() {
          this.loadData();
       }
    },
    data() {
       return {
-         data: null
+         data: []
       };
    },
    mounted() {
@@ -38,14 +38,31 @@ export default {
    },
    methods: {
       loadData() {
-         const storedData = localStorage.getItem("register");
-         if (storedData) {
+         const storedDataRegister = localStorage.getItem("register");
+         if (storedDataRegister) {
             try {
                // Essayer de parser les données JSON
-               this.data = JSON.parse(storedData);
+               let register = JSON.parse(storedDataRegister);
+               console.log(register)
+               register.forEach(element => {
+                  console.log(element)
+                  const storedData = localStorage.getItem(element);
+                  if (storedData) {
+                     try {
+                        console.log(storedData)
+                        let dataE = JSON.parse(storedData);
+                        console.log(dataE)
+                        if (dataE.type === this.type) {
+                           this.data.push(dataE.name);
+                           console.log(this.data)
+                        }
+                     } catch (e) {
+                        console.error('Erreur de parsing des données JSON:', e);
+                     }
+                  }
+               });
             } catch (e) {
                console.error('Erreur de parsing des données JSON:', e);
-               this.data = storedData; // Si ce n'est pas du JSON, on le laisse tel quel
             }
          } else {
             console.log('Aucune donnée trouvée dans le localStorage');
@@ -67,7 +84,7 @@ export default {
          } else {
             console.log('Aucune donnée trouvée dans le localStorage');
          }
-         
+
       }
    }
 };

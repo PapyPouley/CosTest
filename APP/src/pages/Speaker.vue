@@ -1,12 +1,13 @@
 <template>
-   <div class="speaker">
+   <div class="amplifier">
       <div class="header-row">
-         <h1>Speaker Test Results</h1>
+         <h1 class="header-text">Speaker Test Results</h1>
          <div class="image" @click="runTest">
-            <div class="di">
-               <img src="@/assets/icons/Run.png" class="img" />
-            </div>
+            <img src="@/assets/icons/Run.png" class="img" />
             <p>Run</p>
+         </div>
+         <div class="data">
+            <dataBase :data="results" type="speaker" @loaded="loadHandler" />
          </div>
       </div>
       <div v-if="testResults">
@@ -68,10 +69,12 @@
 import NotificationTemplate from "./Notifications/NotificationTemplate";
 import LineChart from "@/components/Charts/LineChart";
 import testAudio from "../TestScript/TestAudio";
+import DataBase from "../components/dataBase/dataBase.vue";
 
 export default {
    components: {
       LineChart,
+      DataBase
    },
    data() {
       return {
@@ -81,6 +84,7 @@ export default {
             responsive: true,
             maintainAspectRatio: false,
          },
+         results: null
       };
    },
    methods: {
@@ -95,53 +99,59 @@ export default {
             timeout: 5000,
          });
       },
-      runTest() {
+      async runTest() {
          let resConnection = connectCOMPort(this.$globals.Port);
          if (resConnection.error) {
             this.notifyVue('top', 'center', resConnection.message);
          } else {
-            let results = testAudio("speaker");
+            let results = await testAudio("speaker");
+            this.results = results;
             //  Print the results
+            this.printGraph(this.results.speaker)
+         }
+      },
+      printGraph(results) {
+         if (results) {
             this.testResults = {
                impulseResponse: {
-                  labels: results.speaker.impulseResponse.labels,
+                  labels: results.impulseResponse.labels,
                   datasets: [
                      {
                         label: "Impulse Response",
-                        data: results.speaker.impulseResponse.data,
+                        data: results.impulseResponse.data,
                         borderColor: "#42b983",
                         fill: false,
                      },
                   ],
                },
                frequencyResponse: {
-                  labels: results.speaker.frequencyResponse.labels,
+                  labels: results.frequencyResponse.labels,
                   datasets: [
                      {
                         label: "Frequency Response",
-                        data: results.speaker.frequencyResponse.data,
+                        data: results.frequencyResponse.data,
                         borderColor: "#f87979",
                         fill: false,
                      },
                   ],
                },
                impedance: {
-                  labels: results.speaker.impedance.labels,
+                  labels: results.impedance.labels,
                   datasets: [
                      {
                         label: "Impedance",
-                        data: results.speaker.impedance.data,
+                        data: results.impedance.data,
                         borderColor: "#3498db",
                         fill: false,
                      },
                   ],
                },
                directivity: {
-                  labels: results.speaker.directivity.labels,
+                  labels: results.directivity.labels,
                   datasets: [
                      {
                         label: "Directivity",
-                        data: results.speaker.directivity.data,
+                        data: results.directivity.data,
                         borderColor: "#9b59b6",
                         fill: false,
                      },
@@ -150,6 +160,11 @@ export default {
             };
          }
       },
+      loadHandler(data) {
+         console.log("Amp")
+         this.results = data.data;
+         this.printGraph(this.results)
+      }
    },
 };
 function connectCOMPort(Port) {
@@ -162,22 +177,23 @@ function connectCOMPort(Port) {
 </script>
 
 <style scoped>
-.speaker {
-   text-align: center;
-}
 
 .header-row {
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
-   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.header-text {
+  margin: 0;
 }
 
 .image {
-   cursor: pointer;
+  cursor: pointer;
+  margin: 0 auto;
+  text-align: center;
 }
 
-button {
-   margin: 20px 0;
-}
 </style>

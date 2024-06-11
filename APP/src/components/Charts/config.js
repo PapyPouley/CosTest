@@ -235,3 +235,49 @@ export let barChartOptions = {
     ],
   },
 };
+
+export let logChartOptions = {
+  ...basicOptions,
+  responsive: true,
+  maintainAspectRatio: false,
+  legend: {
+    display: true,
+  },
+  scales: {
+    x: {
+      display: true,
+      type: 'logarithmic',
+      position: 'bottom',
+      title: {
+        display: true,
+        text: 'Frequency (Hz)',
+      },
+      ticks: {
+        callback: function(value) {
+          const remain = value / (Math.pow(10, Math.floor(Math.log10(value))));
+          if (remain === 1 || remain === 2 || remain === 5) {
+            return value.toString();
+          }
+          return '';
+        }
+      }
+    },
+    y: {
+      type: 'linear',
+      title: {
+        display: true,
+        text: 'Amplitude'
+      }
+    }
+  },
+  tooltips: {
+    backgroundColor: "#f5f5f5",
+    titleFontColor: "#333",
+    bodyFontColor: "#666",
+    bodySpacing: 4,
+    xPadding: 12,
+    mode: "nearest",
+    intersect: 0,
+    position: "nearest",
+  },
+};
