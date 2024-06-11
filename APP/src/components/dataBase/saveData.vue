@@ -20,7 +20,7 @@ export default {
    },
    methods: {
       saveData() {
-         // Convertir les données en JSON et les sauvegarder dans le localStorage
+         // Convert 
 
          try {
             let dataToSave = {

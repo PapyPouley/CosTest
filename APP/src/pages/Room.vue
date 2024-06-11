@@ -80,10 +80,10 @@ export default {
          if (resConnection.error) {
             this.notifyVue('top', 'center', resConnection.message);
          } else {
-            let results = await testAudio("speaker");
+            let results = await testAudio("room");
             this.results = results;
             //  Print the results
-            this.printGraph(this.results.speaker)
+            this.printGraph(this.results.room)
          }
       },
       printGraph(results) {
