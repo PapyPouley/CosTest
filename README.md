@@ -1,7 +1,3 @@
-Certainly! Below is a suggested README for your project "CosTest."
-
----
-
 # CosTest
 
 ## Overview
